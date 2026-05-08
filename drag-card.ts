@@ -1110,8 +1110,42 @@ export class DragCardEditor extends LitElement {
             font-weight: bold;
             background-color: var(--secondary-background-color);
         }
-        .tab-content { padding: 1em; }
-        ha-formfield { display: block; margin-bottom: 8px; }
+        .tab-content { 
+            padding: 1em;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .grid-2-col {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px 16px;
+        }
+        ha-selector, ha-icon-picker {
+            display: block;
+            margin: 0 !important;
+        }
+        /* Target selectors in compact layouts to clip their internal margins */
+        .grid-2-col > ha-selector,
+        .grid-2-col > ha-icon-picker,
+        .advanced-tab-content > ha-selector {
+            /* Clip the built-in 16px bottom margin from internal textfields */
+            max-height: 56px;
+            overflow: hidden;
+        }
+        ha-selector.select-selector {
+            max-height: none !important;
+            overflow: visible !important;
+        }
+        ha-selector.checkbox-selector {
+            max-height: 40px !important;
+        }
+        @media (max-width: 450px) {
+            .grid-2-col {
+                display: flex; /* Fall back to single column on mobile */
+                flex-direction: column;
+            }
+        }
     `;
 
     public setConfig(config: DragCardConfig) {
@@ -1163,7 +1197,7 @@ export class DragCardEditor extends LitElement {
             <div class="config-container">
                 <div class="tab">
                     <div class="tab-label">Visuals</div>
-                    <div class="tab-content">
+                    <div class="tab-content grid-2-col">
                         ${this.renderTextInput('padding', 'Padding')}
                         ${this.renderTextInput('cardWidth', 'Card Width')}
                         ${this.renderTextInput('cardHeight', 'Card Height')}
@@ -1198,7 +1232,7 @@ export class DragCardEditor extends LitElement {
 
                 <div class="tab">
                     <div class="tab-label">Icons</div>
-                    <div class="tab-content">
+                    <div class="tab-content grid-2-col">
                         ${this.renderIconPicker('icoDefault', 'Default Icon')}
                         ${this.renderIconPicker('icoUp', 'Up Icon')}
                         ${this.renderIconPicker('icoDown', 'Down Icon')}
@@ -1212,21 +1246,23 @@ export class DragCardEditor extends LitElement {
 
                 <div class="tab">
                     <div class="tab-label">Advanced</div>
-                    <div class="tab-content">
+                    <div class="tab-content advanced-tab-content">
                         ${this.renderSelect('dragMode', 'Drag Mode', ['spring', 'grid'], 'spring')}
-                        ${this.config.dragMode === 'grid' ? html`
-                            ${this.renderNumberInput('gridX', 'Horizontal Grid Distance (px)', 50)}
-                            ${this.renderNumberInput('gridY', 'Vertical Grid Distance (px)', 50)}
-                        ` : ''}
-                        ${this.renderCheckbox('lockNonActionDirs', 'Lock Non-Action Directions', true)}
                         ${this.renderCheckbox('isStandalone', 'Standalone', true)} 
-                        ${this.renderNumberInput('maxDrag', 'Max Drag', 100)}
-                        ${this.renderNumberInput('returnTime', 'Return Time', 200)}
-                        ${this.renderNumberInput('springDamping', 'Spring Damping', 2)}
-                        ${this.renderNumberInput('repeatTime', 'Repeat Time', 200)}
-                        ${this.renderNumberInput('holdTime', 'Hold Time', 800)}
-                        ${this.renderNumberInput('multiClickTime', 'Multi-click Time', 300)}
-                        ${this.renderNumberInput('deadzone', 'Deadzone', 20)}
+                        ${this.renderCheckbox('lockNonActionDirs', 'Lock Non-Action Directions', true)}
+                        <div class="grid-2-col">
+                            ${this.config.dragMode === 'grid' ? html`
+                                ${this.renderNumberInput('gridX', 'Horizontal Grid Distance (px)', 50)}
+                                ${this.renderNumberInput('gridY', 'Vertical Grid Distance (px)', 50)}
+                            ` : ''}
+                            ${this.renderNumberInput('maxDrag', 'Max Drag', 100)}
+                            ${this.renderNumberInput('returnTime', 'Return Time', 200)}
+                            ${this.renderNumberInput('springDamping', 'Spring Damping', 2)}
+                            ${this.renderNumberInput('repeatTime', 'Repeat Time', 200)}
+                            ${this.renderNumberInput('holdTime', 'Hold Time', 800)}
+                            ${this.renderNumberInput('multiClickTime', 'Multi-click Time', 300)}
+                            ${this.renderNumberInput('deadzone', 'Deadzone', 20)}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1249,6 +1285,7 @@ export class DragCardEditor extends LitElement {
     private renderSelect(configKey: keyof DragCardConfig, label: string, options: string[], defaultValue: string) {
         return html`
             <ha-selector
+                class="select-selector"
                 .hass=${this.hass}
                 .label=${label}
                 .selector=${{ select: { options } }}
@@ -1271,34 +1308,39 @@ export class DragCardEditor extends LitElement {
     }
     private renderNumberInput(configKey: keyof DragCardConfig, label: string, defaultValue: number = 0) {
         return html`
-            <ha-textfield
-                .configValue=${configKey}
+            <ha-selector
+                .hass=${this.hass}
                 .label=${label}
-                type="number"
+                .selector=${{ text: { type: "number" } }}
+                .configValue=${configKey}
                 .value=${this.config![configKey] || defaultValue}
-                @input=${this._valueChanged}
-            ></ha-textfield>
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
         `;
     }
     private renderTextInput(configKey: keyof DragCardConfig, label: string, defaultValue: string = "") {
         return html`
-            <ha-textfield
+            <ha-selector
+                .hass=${this.hass}
                 .label=${label}
+                .selector=${{ text: {} }}
                 .configValue=${configKey}
                 .value=${this.config![configKey] || defaultValue}
-                @input=${this._valueChanged}
-            ></ha-textfield>
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
         `;
     }
     private renderCheckbox(configKey: keyof DragCardConfig, label: string, defaultValue: boolean = false) {
         return html`
-            <ha-formfield .label=${label}>
-                <ha-switch
-                    .checked=${this.config![configKey] !== undefined ? this.config![configKey] : defaultValue}
-                    .configValue=${configKey}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </ha-formfield>
+            <ha-selector
+                class="checkbox-selector"
+                .hass=${this.hass}
+                .label=${label}
+                .selector=${{ boolean: {} }}
+                .configValue=${configKey}
+                .value=${this.config![configKey] !== undefined ? this.config![configKey] : defaultValue}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
         `;
     }
 }
