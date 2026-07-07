@@ -692,6 +692,13 @@ export class DragCard extends LitElement {
         this.updatePosition(visualX, visualY);
     }
     
+    private getDirectionFromDelta(dx: number, dy: number): 'Up' | 'Down' | 'Left' | 'Right' {
+        if (Math.abs(dx) > Math.abs(dy)) {
+            return dx > 0 ? 'Right' : 'Left';
+        }
+        return dy > 0 ? 'Down' : 'Up';
+    }
+
     private hasAction(key: 'Up' | 'Down' | 'Left' | 'Right' | 'Center' | 'Hold' | 'Double' | 'Triple' | 'Quadruple'): boolean {
         if (!this.config) return false;
         const actionConfig = this.config[`action${key}` as keyof DragCardConfig] as any;
@@ -820,14 +827,9 @@ export class DragCard extends LitElement {
             } else {
                 const dx = this.buttonRealPos.x - this.buttonOrigin.x;
                 const dy = this.buttonRealPos.y - this.buttonOrigin.y;
-                
-                let direction: 'Up' | 'Down' | 'Left' | 'Right';
-                if (Math.abs(dx) > Math.abs(dy)) {
-                    direction = dx > 0 ? 'Right' : 'Left';
-                } else {
-                    direction = dy > 0 ? 'Down' : 'Up';
-                }
-                
+
+                const direction = this.getDirectionFromDelta(dx, dy);
+
                 if (this.hasAction(direction)) {
                     const iconKey = `ico${direction}` as keyof DragCardConfig;
                     const actionKey = `action${direction}` as keyof DragCardConfig;
@@ -885,14 +887,9 @@ export class DragCard extends LitElement {
         } else {
             const dx = this.buttonRealPos.x - this.buttonOrigin.x;
             const dy = this.buttonRealPos.y - this.buttonOrigin.y;
-            
-            let direction: 'Up' | 'Down' | 'Left' | 'Right';
-            if (Math.abs(dx) > Math.abs(dy)) {
-                direction = dx > 0 ? 'Right' : 'Left';
-            } else {
-                direction = dy > 0 ? 'Down' : 'Up';
-            }
-            
+
+            const direction = this.getDirectionFromDelta(dx, dy);
+
             if (this.hasAction(direction)) {
                 const iconKey = `ico${direction}` as keyof DragCardConfig;
                 const actionKey = `action${direction}` as keyof DragCardConfig;
