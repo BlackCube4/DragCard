@@ -106,6 +106,7 @@ export class DragCard extends LitElement {
     
     private overlay: HTMLElement | null = null;
     private buttonPlaceholder: HTMLElement | null = null;
+    private rippleAnimation: Animation | null = null;
 
     private distance = 0;
     private actionCounter = 0;
@@ -566,18 +567,17 @@ export class DragCard extends LitElement {
         }
         let newScale = distCorner/rippleRadius;
 
-        // Reset ripple scale without transition
-        this.ripple.style.transition = 'none';
-        this.ripple.style.transform = 'scale(1)';
-        this.ripple.style.opacity = '0.02';
-        
-        // Force a reflow to ensure the reset is applied before the next change
-        void this.ripple.offsetHeight;
-        
-        // Reapply transition and set new scale
-        this.ripple.style.transition = 'transform ' + this.rippleTime + 'ms ease-in, opacity 0.3s';
-        this.ripple.style.transform = 'scale(' + newScale + ')';
-        this.ripple.style.opacity = '0.04';
+        // Animate the ripple growth with the Web Animations API: each call's keyframes
+        // are self-contained, so a fresh animate() cleanly restarts the effect without
+        // needing the old "reset styles, force reflow, reapply transition" trick
+        this.rippleAnimation?.cancel();
+        this.rippleAnimation = this.ripple.animate(
+            [
+                { transform: 'scale(1)', opacity: 0.02 },
+                { transform: `scale(${newScale})`, opacity: 0.04 }
+            ],
+            { duration: this.rippleTime, easing: 'ease-in', fill: 'forwards' }
+        );
 
         document.addEventListener('pointermove', this.boundDragHandler, { capture: true });
         document.addEventListener('pointerup', this.boundEndDragHandler, { capture: true });
@@ -947,12 +947,17 @@ export class DragCard extends LitElement {
         if (this.config.iconLargerOnClick) this.iconContainer.style.transform = "scale(1)";
         this.hover.style.opacity = "0";
 
+        const fadeOutRipple = () => {
+            this.ripple.animate(
+                [{ opacity: 0.04 }, { opacity: 0 }],
+                { duration: 300, fill: 'forwards' }
+            );
+        };
+
         if (Date.now() - this.startTime >= this.rippleTime) {
-            this.ripple.style.opacity = '0';
+            fadeOutRipple();
         } else {
-            this.rippleTimeout = window.setTimeout(() => {
-                this.ripple.style.opacity = '0';
-            }, this.rippleTime - (Date.now() - this.startTime));
+            this.rippleTimeout = window.setTimeout(fadeOutRipple, this.rippleTime - (Date.now() - this.startTime));
         }
 
         document.removeEventListener('pointermove', this.boundDragHandler, { capture: true });
