@@ -102,6 +102,7 @@ export class DragCard extends LitElement {
     private lastGridY = 0;
     private latestPointerPos = { x: 0, y: 0 };
     private dragFrameRequested = false;
+    private actionAvailability: Partial<Record<'Up' | 'Down' | 'Left' | 'Right' | 'Center' | 'Hold' | 'Double' | 'Triple' | 'Quadruple', boolean>> = {};
     
     private overlay: HTMLElement | null = null;
     private buttonPlaceholder: HTMLElement | null = null;
@@ -287,6 +288,16 @@ export class DragCard extends LitElement {
             isStandalone: true,
             ...config
         };
+
+        // Precompute which action slots are configured, so the drag/animation
+        // hot paths can do a cheap lookup instead of recomputing this every frame
+        const actionSlots: Array<'Up' | 'Down' | 'Left' | 'Right' | 'Center' | 'Hold' | 'Double' | 'Triple' | 'Quadruple'> =
+            ['Up', 'Down', 'Left', 'Right', 'Center', 'Hold', 'Double', 'Triple', 'Quadruple'];
+        this.actionAvailability = {};
+        for (const key of actionSlots) {
+            const actionConfig = this.config[`action${key}` as keyof DragCardConfig] as HaActionConfig | undefined;
+            this.actionAvailability[key] = !!(actionConfig && actionConfig.action && actionConfig.action !== 'none');
+        }
 
         this.style.setProperty('--drag-card-padding', this.config.padding ?? (this.config.isStandalone ? '15px' : '0px'));
         this.style.setProperty('--drag-card-width', this.config.cardWidth ?? '100%');
@@ -734,9 +745,7 @@ export class DragCard extends LitElement {
     }
 
     private hasAction(key: 'Up' | 'Down' | 'Left' | 'Right' | 'Center' | 'Hold' | 'Double' | 'Triple' | 'Quadruple'): boolean {
-        if (!this.config) return false;
-        const actionConfig = this.config[`action${key}` as keyof DragCardConfig] as HaActionConfig | undefined;
-        return !!(actionConfig && actionConfig.action && actionConfig.action !== 'none');
+        return this.actionAvailability[key] ?? false;
     }
 
     private fireHapticEvent() {
