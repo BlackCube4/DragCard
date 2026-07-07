@@ -109,7 +109,6 @@ export class DragCard extends LitElement {
 
     private boundDragHandler = this.drag.bind(this);
     private boundEndDragHandler = this.endDrag.bind(this);
-    private boundCancelDragHandler = this.endDrag.bind(this);
     private boundScrollHandler = this.onScroll.bind(this);
 
     protected firstUpdated() {
@@ -499,8 +498,8 @@ export class DragCard extends LitElement {
 
         // Get the mouse/finger position relative to the doc
         const mouseDocument = {
-            x: event.touches ? event.touches[0].clientX : event.clientX,
-            y: event.touches ? event.touches[0].clientY : event.clientY };
+            x: event.clientX,
+            y: event.clientY };
 
         this.mouseOffset = {
             x: mouseDocument.x - this.buttonRealPos.x,
@@ -545,7 +544,7 @@ export class DragCard extends LitElement {
 
         document.addEventListener('pointermove', this.boundDragHandler, { capture: true });
         document.addEventListener('pointerup', this.boundEndDragHandler, { capture: true });
-        document.addEventListener('pointercancel', this.boundCancelDragHandler, { capture: true });
+        document.addEventListener('pointercancel', this.boundEndDragHandler, { capture: true });
         window.addEventListener('scroll', this.boundScrollHandler, { capture: true, passive: true });
 
         this.actionCounter = 0;
@@ -580,8 +579,7 @@ export class DragCard extends LitElement {
         this.visualButton.style.cursor = 'grabbing';
 
         // Get the mouse/finger position relative to the doc
-        const mouseDocument = { x: event.touches ? event.touches[0].clientX : event.clientX,
-                                y: event.touches ? event.touches[0].clientY : event.clientY };
+        const mouseDocument = { x: event.clientX, y: event.clientY };
         
         // Update real position (without scaling)
         this.buttonRealPos = { x: mouseDocument.x - this.mouseOffset.x,
@@ -914,7 +912,7 @@ export class DragCard extends LitElement {
 
         document.removeEventListener('pointermove', this.boundDragHandler, { capture: true });
         document.removeEventListener('pointerup', this.boundEndDragHandler, { capture: true });
-        document.removeEventListener('pointercancel', this.boundCancelDragHandler, { capture: true });
+        document.removeEventListener('pointercancel', this.boundEndDragHandler, { capture: true });
         
         if (this.isHoldAction == false) {
             if (this.config.dragMode === 'grid') {
