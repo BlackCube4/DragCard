@@ -212,7 +212,8 @@ export class DragCard extends LitElement {
             background-color: rgb(255, 255, 255);
             opacity: 0;
             pointer-events: none;
-            box-shadow: 0 0 40px 40px rgb(255, 255, 255); //offset-x offset-y softness shadow-size color;
+            /* offset-x offset-y softness shadow-size color */
+            box-shadow: 0 0 40px 40px rgb(255, 255, 255);
             transform: scale(1);
         }
         
@@ -520,12 +521,13 @@ export class DragCard extends LitElement {
         this.ripple.style.height = rippleRadius*2 + 'px';
 
         // Get distance to furthest corner (Set ripple end radius)
+        let distCorner: number;
         if (mouseButton.x > buttonWidth/2){
-            if (mouseButton.y > buttonHeight/2) var distCorner = Math.sqrt((mouseButton.x) **2 + (mouseButton.y) ** 2); //top left
-            else var distCorner = Math.sqrt((mouseButton.x) **2 + (buttonHeight - mouseButton.y) ** 2); //buttom left
+            if (mouseButton.y > buttonHeight/2) distCorner = Math.sqrt((mouseButton.x) **2 + (mouseButton.y) ** 2); //top left
+            else distCorner = Math.sqrt((mouseButton.x) **2 + (buttonHeight - mouseButton.y) ** 2); //buttom left
         } else {
-            if (mouseButton.y > buttonHeight/2) var distCorner = Math.sqrt((buttonWidth - mouseButton.x) **2 + (mouseButton.y) ** 2); //top right
-            else var distCorner = Math.sqrt((buttonWidth - mouseButton.x) **2 + (buttonHeight - mouseButton.y) ** 2); //bottom right
+            if (mouseButton.y > buttonHeight/2) distCorner = Math.sqrt((buttonWidth - mouseButton.x) **2 + (mouseButton.y) ** 2); //top right
+            else distCorner = Math.sqrt((buttonWidth - mouseButton.x) **2 + (buttonHeight - mouseButton.y) ** 2); //bottom right
         }
         let newScale = distCorner/rippleRadius;
 
