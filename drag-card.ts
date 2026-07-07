@@ -1193,76 +1193,74 @@ export class DragCardEditor extends LitElement {
 
         return html`
             <div class="config-container">
-                <div class="tab">
-                    <div class="tab-label">Visuals</div>
-                    <div class="tab-content grid-2-col">
-                        ${this.renderTextInput('padding', 'Padding')}
-                        ${this.renderTextInput('cardWidth', 'Card Width')}
-                        ${this.renderTextInput('cardHeight', 'Card Height')}
-                        ${this.renderTextInput('cardBackgroundColor', 'Background Color')}
-                        ${this.renderTextInput('cardBorderRadius', 'Border Radius')}
-                        ${this.renderTextInput('cardBoxShadow', 'Box Shadow')} 
+                ${this.renderTab('Visuals', 'grid-2-col', html`
+                    ${this.renderTextInput('padding', 'Padding')}
+                    ${this.renderTextInput('cardWidth', 'Card Width')}
+                    ${this.renderTextInput('cardHeight', 'Card Height')}
+                    ${this.renderTextInput('cardBackgroundColor', 'Background Color')}
+                    ${this.renderTextInput('cardBorderRadius', 'Border Radius')}
+                    ${this.renderTextInput('cardBoxShadow', 'Box Shadow')}
 
-                        ${this.renderTextInput('buttonHeight', 'Button Height')}
-                        ${this.renderTextInput('buttonWidth', 'Button Width')}
-                        ${this.renderTextInput('buttonBackgroundColor', 'Button Background Color')}
-                        ${this.renderTextInput('buttonBorderRadius', 'Button Border Radius')}
-                        ${this.renderTextInput('buttonBoxShadow', 'Button Box Shadow')}
-                        
-                        ${this.renderTextInput('iconSize', 'Icon Size')}
-                    </div>
-                </div>
+                    ${this.renderTextInput('buttonHeight', 'Button Height')}
+                    ${this.renderTextInput('buttonWidth', 'Button Width')}
+                    ${this.renderTextInput('buttonBackgroundColor', 'Button Background Color')}
+                    ${this.renderTextInput('buttonBorderRadius', 'Button Border Radius')}
+                    ${this.renderTextInput('buttonBoxShadow', 'Button Box Shadow')}
 
-                <div class="tab">
-                    <div class="tab-label">Actions</div>
-                    <div class="tab-content">
-                        ${this.renderActionPicker('actionUp', 'Swipe Up')}
-                        ${this.renderActionPicker('actionDown', 'Swipe Down')}
-                        ${this.renderActionPicker('actionLeft', 'Swipe Left')}
-                        ${this.renderActionPicker('actionRight', 'Swipe Right')}
-                        ${this.renderActionPicker('actionCenter', 'Center Click')}
-                        ${this.renderActionPicker('actionDouble', 'Double Click')}
-                        ${this.renderActionPicker('actionTriple', 'Triple Click')}
-                        ${this.renderActionPicker('actionQuadruple', 'Quadruple Click')}
-                        ${this.renderActionPicker('actionHold', 'Hold Action')}
-                    </div>
-                </div>
+                    ${this.renderTextInput('iconSize', 'Icon Size')}
+                `)}
 
-                <div class="tab">
-                    <div class="tab-label">Icons</div>
-                    <div class="tab-content grid-2-col">
-                        ${this.renderIconPicker('icoDefault', 'Default Icon')}
-                        ${this.renderIconPicker('icoUp', 'Up Icon')}
-                        ${this.renderIconPicker('icoDown', 'Down Icon')}
-                        ${this.renderIconPicker('icoLeft', 'Left Icon')}
-                        ${this.renderIconPicker('icoRight', 'Right Icon')}
-                        ${this.renderIconPicker('icoCenter', 'Center Icon')}
-                        ${this.renderIconPicker('icoHold', 'Hold Icon')}
-                        ${this.renderIconPicker('icoDouble', 'Double Click Icon')}
-                    </div>
-                </div>
+                ${this.renderTab('Actions', '', html`
+                    ${this.renderActionPicker('actionUp', 'Swipe Up')}
+                    ${this.renderActionPicker('actionDown', 'Swipe Down')}
+                    ${this.renderActionPicker('actionLeft', 'Swipe Left')}
+                    ${this.renderActionPicker('actionRight', 'Swipe Right')}
+                    ${this.renderActionPicker('actionCenter', 'Center Click')}
+                    ${this.renderActionPicker('actionDouble', 'Double Click')}
+                    ${this.renderActionPicker('actionTriple', 'Triple Click')}
+                    ${this.renderActionPicker('actionQuadruple', 'Quadruple Click')}
+                    ${this.renderActionPicker('actionHold', 'Hold Action')}
+                `)}
 
-                <div class="tab">
-                    <div class="tab-label">Advanced</div>
-                    <div class="tab-content advanced-tab-content">
-                        ${this.renderSelect('dragMode', 'Drag Mode', ['spring', 'grid'], 'spring')}
-                        ${this.renderCheckbox('isStandalone', 'Standalone', true)} 
-                        ${this.renderCheckbox('lockNonActionDirs', 'Lock Non-Action Directions', true)}
-                        <div class="grid-2-col">
-                            ${this.config.dragMode === 'grid' ? html`
-                                ${this.renderNumberInput('gridX', 'Horizontal Grid Distance (px)', 50)}
-                                ${this.renderNumberInput('gridY', 'Vertical Grid Distance (px)', 50)}
-                            ` : ''}
-                            ${this.renderNumberInput('maxDrag', 'Max Drag', 100)}
-                            ${this.renderNumberInput('returnTime', 'Return Time', 200)}
-                            ${this.renderNumberInput('springDamping', 'Spring Damping', 2)}
-                            ${this.renderNumberInput('repeatTime', 'Repeat Time', 200)}
-                            ${this.renderNumberInput('holdTime', 'Hold Time', 800)}
-                            ${this.renderNumberInput('multiClickTime', 'Multi-click Time', 300)}
-                            ${this.renderNumberInput('deadzone', 'Deadzone', 20)}
-                        </div>
+                ${this.renderTab('Icons', 'grid-2-col', html`
+                    ${this.renderIconPicker('icoDefault', 'Default Icon')}
+                    ${this.renderIconPicker('icoUp', 'Up Icon')}
+                    ${this.renderIconPicker('icoDown', 'Down Icon')}
+                    ${this.renderIconPicker('icoLeft', 'Left Icon')}
+                    ${this.renderIconPicker('icoRight', 'Right Icon')}
+                    ${this.renderIconPicker('icoCenter', 'Center Icon')}
+                    ${this.renderIconPicker('icoHold', 'Hold Icon')}
+                    ${this.renderIconPicker('icoDouble', 'Double Click Icon')}
+                `)}
+
+                ${this.renderTab('Advanced', 'advanced-tab-content', html`
+                    ${this.renderSelect('dragMode', 'Drag Mode', ['spring', 'grid'], 'spring')}
+                    ${this.renderCheckbox('isStandalone', 'Standalone', true)}
+                    ${this.renderCheckbox('lockNonActionDirs', 'Lock Non-Action Directions', true)}
+                    <div class="grid-2-col">
+                        ${this.config.dragMode === 'grid' ? html`
+                            ${this.renderNumberInput('gridX', 'Horizontal Grid Distance (px)', 50)}
+                            ${this.renderNumberInput('gridY', 'Vertical Grid Distance (px)', 50)}
+                        ` : ''}
+                        ${this.renderNumberInput('maxDrag', 'Max Drag', 100)}
+                        ${this.renderNumberInput('returnTime', 'Return Time', 200)}
+                        ${this.renderNumberInput('springDamping', 'Spring Damping', 2)}
+                        ${this.renderNumberInput('repeatTime', 'Repeat Time', 200)}
+                        ${this.renderNumberInput('holdTime', 'Hold Time', 800)}
+                        ${this.renderNumberInput('multiClickTime', 'Multi-click Time', 300)}
+                        ${this.renderNumberInput('deadzone', 'Deadzone', 20)}
                     </div>
-                </div>
+                `)}
+            </div>
+        `;
+    }
+
+    // Wraps tab content in the shared tab label/panel markup
+    private renderTab(title: string, contentClass: string, content: TemplateResult) {
+        return html`
+            <div class="tab">
+                <div class="tab-label">${title}</div>
+                <div class="tab-content ${contentClass}">${content}</div>
             </div>
         `;
     }
