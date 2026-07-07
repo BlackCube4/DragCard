@@ -436,6 +436,8 @@ export class DragCard extends LitElement {
 
         if (this.config.buttonSmallerOnClick) this.visualButton.style.transform = "scale(0.95)";
         if (this.config.iconLargerOnClick) this.iconContainer.style.transform = "scale(1.1)";
+        document.body.style.cursor = 'grabbing';
+        this.visualButton.style.cursor = 'grabbing';
         if (event.pointerType != 'touch') this.hover.style.opacity = "0.01";
 
         this.startTime = Date.now();
@@ -594,11 +596,9 @@ export class DragCard extends LitElement {
 
     // This function is called when the mouse or touch is moved
     // It calculates the distance moved and updates the position of the button
-    private drag(event: any) {        
+    private drag(event: any) {
         event.preventDefault();
         event.stopPropagation();
-        document.body.style.cursor = 'grabbing';
-        this.visualButton.style.cursor = 'grabbing';
 
         // Get the mouse/finger position relative to the doc
         const mouseDocument = { x: event.clientX, y: event.clientY };
