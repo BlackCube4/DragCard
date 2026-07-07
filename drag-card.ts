@@ -100,6 +100,8 @@ export class DragCard extends LitElement {
     private buttonOrigin = { x: 0, y: 0 };              // Original position
     private lastGridX = 0;
     private lastGridY = 0;
+    private latestPointerPos = { x: 0, y: 0 };
+    private dragFrameRequested = false;
     
     private overlay: HTMLElement | null = null;
     private buttonPlaceholder: HTMLElement | null = null;
@@ -576,6 +578,7 @@ export class DragCard extends LitElement {
         this.lastGridY = 0;
         this.distance = 0; // Guarantee fresh distance so previous swipes don't block holds
         this.isHoldAction = false;
+        this.dragFrameRequested = false;
 
         if (this.repeatAction) clearInterval(this.repeatAction);
         if (this.holdDetection) clearTimeout(this.holdDetection);
@@ -595,19 +598,30 @@ export class DragCard extends LitElement {
     }
 
     // This function is called when the mouse or touch is moved
-    // It calculates the distance moved and updates the position of the button
+    // It records the latest pointer position and schedules a single visual
+    // update per animation frame, so bursts of pointermove events (which can
+    // fire faster than the display refreshes) don't cause redundant style writes
     private drag(event: any) {
         event.preventDefault();
         event.stopPropagation();
 
-        // Get the mouse/finger position relative to the doc
-        const mouseDocument = { x: event.clientX, y: event.clientY };
-        
-        // Update real position (without scaling)
-        this.buttonRealPos = { x: mouseDocument.x - this.mouseOffset.x,
-                               y: mouseDocument.y - this.mouseOffset.y };
-        
-        this.updateVisualPosition();
+        this.latestPointerPos = { x: event.clientX, y: event.clientY };
+
+        if (this.dragFrameRequested) return;
+        this.dragFrameRequested = true;
+
+        requestAnimationFrame(() => {
+            this.dragFrameRequested = false;
+            if (!this.isDragging) return;
+
+            // Update real position (without scaling)
+            this.buttonRealPos = {
+                x: this.latestPointerPos.x - this.mouseOffset.x,
+                y: this.latestPointerPos.y - this.mouseOffset.y
+            };
+
+            this.updateVisualPosition();
+        });
     }
 
     private onScroll() {
