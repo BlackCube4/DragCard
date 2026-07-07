@@ -1,17 +1,29 @@
 import { LitElement, html, css, TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 
+// Shape of a standard Home Assistant tap/hold/ui-action config
+interface HaActionConfig {
+    action?: string;
+    service?: string;
+    perform_action?: string;
+    data?: Record<string, any>;
+    target?: { entity_id?: string | string[]; [key: string]: any };
+    entity?: string | string[];
+    navigation_path?: string;
+    [key: string]: any;
+}
+
 // These are the variables that can be configured by the visual config and are edited by the card
 interface DragCardConfig {
-    actionUp?: any;
-    actionDown?: any;
-    actionLeft?: any;
-    actionRight?: any;
-    actionCenter?: any;
-    actionHold?: any;
-    actionDouble?: any;
-    actionTriple?: any;
-    actionQuadruple?: any;
+    actionUp?: HaActionConfig;
+    actionDown?: HaActionConfig;
+    actionLeft?: HaActionConfig;
+    actionRight?: HaActionConfig;
+    actionCenter?: HaActionConfig;
+    actionHold?: HaActionConfig;
+    actionDouble?: HaActionConfig;
+    actionTriple?: HaActionConfig;
+    actionQuadruple?: HaActionConfig;
 
     icoDefault?: string;
     icoUp?: string;
@@ -701,8 +713,8 @@ export class DragCard extends LitElement {
 
     private hasAction(key: 'Up' | 'Down' | 'Left' | 'Right' | 'Center' | 'Hold' | 'Double' | 'Triple' | 'Quadruple'): boolean {
         if (!this.config) return false;
-        const actionConfig = this.config[`action${key}` as keyof DragCardConfig] as any;
-        return (actionConfig && actionConfig.action && actionConfig.action !== 'none');
+        const actionConfig = this.config[`action${key}` as keyof DragCardConfig] as HaActionConfig | undefined;
+        return !!(actionConfig && actionConfig.action && actionConfig.action !== 'none');
     }
 
     private fireHapticEvent() {
@@ -714,8 +726,8 @@ export class DragCard extends LitElement {
     private executeAction(actionKey: keyof DragCardConfig) {
         if (!this.config || !this.hass) return;
         
-        const actionConfig = this.config[actionKey] as any;
-        const hasValidAction = actionConfig && actionConfig.action && actionConfig.action !== 'none';
+        const actionConfig = this.config[actionKey] as HaActionConfig | undefined;
+        const hasValidAction = !!(actionConfig && actionConfig.action && actionConfig.action !== 'none');
         
         if (hasValidAction) {
             const now = Date.now();
