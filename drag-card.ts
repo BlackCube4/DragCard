@@ -705,6 +705,12 @@ export class DragCard extends LitElement {
         return (actionConfig && actionConfig.action && actionConfig.action !== 'none');
     }
 
+    private fireHapticEvent() {
+        const hapticEvent = new Event('haptic', { bubbles: true, composed: true });
+        (hapticEvent as any).detail = 'light';
+        this.dispatchEvent(hapticEvent);
+    }
+
     private executeAction(actionKey: keyof DragCardConfig) {
         if (!this.config || !this.hass) return;
         
@@ -715,23 +721,14 @@ export class DragCard extends LitElement {
             const now = Date.now();
             // 100ms cooldown prevents rapid-fire double clicks on simultaneous grid crosses
             if (now - this.lastVibrate > 100) {
-                if (navigator.vibrate) {
-                    if (!this.hasVibratedOnce) {
-                        // First action: Use HA native event to bypass strict browser blocks
-                        const hapticEvent = new Event('haptic', { bubbles: true, composed: true });
-                        (hapticEvent as any).detail = 'light';
-                        this.dispatchEvent(hapticEvent);
-                    } else {
-                        // Subsequent actions: Use native web API for crisp, non-doubling feedback
-                        navigator.vibrate(40);
-                    }
+                if (navigator.vibrate && this.hasVibratedOnce) {
+                    // Subsequent actions: Use native web API for crisp, non-doubling feedback
+                    navigator.vibrate(40);
                 } else {
-                    // iOS / unsupported devices: Always use HA native event
-                    const hapticEvent = new Event('haptic', { bubbles: true, composed: true });
-                    (hapticEvent as any).detail = 'light';
-                    this.dispatchEvent(hapticEvent);
+                    // First action or unsupported devices: Use HA native event to bypass strict browser blocks
+                    this.fireHapticEvent();
                 }
-                
+
                 this.lastVibrate = now;
             }
 
