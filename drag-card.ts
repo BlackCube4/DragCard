@@ -74,6 +74,14 @@ interface DragCardConfig {
     iconSize?: string;
 }
 
+// Config keys that always receive a default in setConfig, so they're never undefined afterwards
+type DefaultedConfigKeys = 'dragMode' | 'gridX' | 'gridY' | 'maxDrag' | 'returnTime' | 'springDamping'
+    | 'repeatTime' | 'holdTime' | 'multiClickTime' | 'deadzone' | 'lockNonActionDirs'
+    | 'iconLargerOnClick' | 'buttonSmallerOnClick' | 'isStandalone';
+
+// Resolved config as stored on the element after setConfig applies its defaults
+type ResolvedDragCardConfig = DragCardConfig & Required<Pick<DragCardConfig, DefaultedConfigKeys>>;
+
 @customElement('drag-card')
 export class DragCard extends LitElement {
     @property({ attribute: false }) 
@@ -82,7 +90,7 @@ export class DragCard extends LitElement {
     @state()
     private currentIcon = '';
     @state()
-    private config!: DragCardConfig;
+    private config!: ResolvedDragCardConfig;
     @state()
     private isDragging = false;
 
@@ -577,11 +585,11 @@ export class DragCard extends LitElement {
             // Set repeat action FIRST so if detectSwipeDirection calls endDrag, it gets properly cleared!
             if (this.config.dragMode !== 'grid') {
                 this.repeatAction = window.setInterval(() => {
-                    this.detectSwipeDirection((this.config.deadzone!) * 2, 1);
-                }, this.config.repeatTime!);
+                    this.detectSwipeDirection((this.config.deadzone) * 2, 1);
+                }, this.config.repeatTime);
             }
-            this.detectSwipeDirection((this.config.deadzone!) * 2, 1);
-        }, this.config.holdTime!);
+            this.detectSwipeDirection((this.config.deadzone) * 2, 1);
+        }, this.config.holdTime);
     }
 
     // This function is called when the mouse or touch is moved
@@ -695,7 +703,7 @@ export class DragCard extends LitElement {
             this.lastGridY = currentGridY;
         } else {
             // Apply resistance
-            const scale = this.config.maxDrag! / (this.config.maxDrag! + this.distance);
+            const scale = this.config.maxDrag / (this.config.maxDrag + this.distance);
             visualX = visualX * scale;
             visualY = visualY * scale;
         }
@@ -880,7 +888,7 @@ export class DragCard extends LitElement {
                 if (this.clickCount === this.maxMultiClicks) {
                     triggerClick();
                 } else {
-                    this.handleClick = window.setTimeout(triggerClick, this.config.multiClickTime!);
+                    this.handleClick = window.setTimeout(triggerClick, this.config.multiClickTime);
                 }
             }
         } else {
@@ -930,11 +938,11 @@ export class DragCard extends LitElement {
         
         if (this.isHoldAction == false) {
             if (this.config.dragMode === 'grid') {
-                if (this.distance < this.config.deadzone! && this.actionCounter === 0) {
-                    this.detectSwipeDirection(this.config.deadzone!, 0);
+                if (this.distance < this.config.deadzone && this.actionCounter === 0) {
+                    this.detectSwipeDirection(this.config.deadzone, 0);
                 }
             } else {
-                this.detectSwipeDirection(this.config.deadzone!, 0);
+                this.detectSwipeDirection(this.config.deadzone, 0);
             }
         }
 
@@ -962,17 +970,17 @@ export class DragCard extends LitElement {
             if (!this.animationFrameID) return;
 
             const elapsed = timestamp - startTime;
-            const progress = Math.max(0, Math.min(elapsed / this.config.returnTime!, 1));
+            const progress = Math.max(0, Math.min(elapsed / this.config.returnTime, 1));
             
             let eased: number = 0;
             // Spring easing - starts fast and ends with a gentle settle
-            if (this.config.springDamping! >= 2) {
+            if (this.config.springDamping >= 2) {
                 // without bounce
                 eased = 1 - Math.pow(1 - progress, 1.675);
             }
             else {
                 //spring like
-                eased = 1 - Math.pow(2, -10 * progress) * Math.cos(progress * Math.PI * 2 / this.config.springDamping!);
+                eased = 1 - Math.pow(2, -10 * progress) * Math.cos(progress * Math.PI * 2 / this.config.springDamping);
             }
             
             // Update real position relative to origin
@@ -996,7 +1004,7 @@ export class DragCard extends LitElement {
             }
 
             if (this.config.dragMode !== 'grid') {
-                const scale = this.config.maxDrag! / (this.config.maxDrag! + this.distance);
+                const scale = this.config.maxDrag / (this.config.maxDrag + this.distance);
                 visualX = visualX * scale;
                 visualY = visualY * scale;
             }
