@@ -791,12 +791,22 @@ export class DragCard extends LitElement {
 
         const dirCapitalized = direction.charAt(0).toUpperCase() + direction.slice(1) as 'Up' | 'Down' | 'Left' | 'Right';
         if (this.hasAction(dirCapitalized)) {
-            const iconKey = `ico${dirCapitalized}` as keyof DragCardConfig;
-            const actionKey = `action${dirCapitalized}` as keyof DragCardConfig;
-            this.currentIcon = (this.config[iconKey] as string) || this.currentIcon;
-            this.executeAction(actionKey);
+            this.runNamedAction(dirCapitalized);
         }
 
+        this.scheduleIconReset();
+    }
+
+    // Runs the icon/action pair for a named action slot (e.g. 'Up', 'Hold', 'Double')
+    private runNamedAction(key: 'Up' | 'Down' | 'Left' | 'Right' | 'Hold' | 'Center' | 'Double' | 'Triple' | 'Quadruple') {
+        const iconKey = `ico${key}` as keyof DragCardConfig;
+        const actionKey = `action${key}` as keyof DragCardConfig;
+        this.currentIcon = (this.config[iconKey] as string) || this.currentIcon;
+        this.executeAction(actionKey);
+    }
+
+    // Resets the displayed icon back to default after a short delay
+    private scheduleIconReset() {
         this.actionCounter++;
         this.iconTimeout = window.setTimeout(() => {
             this.currentIcon = this.config?.icoDefault || this.config?.icoCenter || 'mdi:alert';
@@ -815,14 +825,10 @@ export class DragCard extends LitElement {
         if (holdMode == 1) {
             if (this.distance < deadzone) {
                 if (this.hasAction('Hold')) {
-                    this.currentIcon = this.config.icoHold || '';
-                    this.executeAction('actionHold');
+                    this.runNamedAction('Hold');
                 }
-                
-                this.actionCounter++;
-                this.iconTimeout = window.setTimeout(() => {
-                    this.currentIcon = this.config?.icoDefault || this.config?.icoCenter || 'mdi:alert';
-                }, 3000);
+
+                this.scheduleIconReset();
                 this.endDrag();
             } else {
                 const dx = this.buttonRealPos.x - this.buttonOrigin.x;
@@ -831,16 +837,10 @@ export class DragCard extends LitElement {
                 const direction = this.getDirectionFromDelta(dx, dy);
 
                 if (this.hasAction(direction)) {
-                    const iconKey = `ico${direction}` as keyof DragCardConfig;
-                    const actionKey = `action${direction}` as keyof DragCardConfig;
-                    this.currentIcon = (this.config[iconKey] as string) || this.currentIcon;
-                    this.executeAction(actionKey);
+                    this.runNamedAction(direction);
                 }
-                
-                this.actionCounter++;
-                this.iconTimeout = window.setTimeout(() => {
-                    this.currentIcon = this.config?.icoDefault || this.config?.icoCenter || 'mdi:alert';
-                }, 3000);
+
+                this.scheduleIconReset();
             }
             return; // ALWAYS return for holdMode 1 to prevent accidental swipe executions
         }
@@ -856,23 +856,13 @@ export class DragCard extends LitElement {
                         this.handleClick = null;
                         return;
                     }
-                    switch (this.clickCount) {
-                        case 1:
-                            this.executeAction('actionCenter');
-                            this.currentIcon = this.config.icoCenter || '';
-                            break;
-                        case 2:
-                            this.executeAction('actionDouble');
-                            this.currentIcon = this.config.icoDouble || '';
-                            break;
-                        case 3:
-                            this.executeAction('actionTriple');
-                            this.currentIcon = this.config.icoTriple || '';
-                            break;
-                        case 4:
-                            this.executeAction('actionQuadruple');
-                            this.currentIcon = this.config.icoQuadruple || '';
-                            break;
+                    const clickKeys: Record<number, 'Center' | 'Double' | 'Triple' | 'Quadruple'> = {
+                        1: 'Center', 2: 'Double', 3: 'Triple', 4: 'Quadruple'
+                    };
+                    const clickKey = clickKeys[this.clickCount];
+                    if (clickKey) {
+                        this.executeAction(`action${clickKey}` as keyof DragCardConfig);
+                        this.currentIcon = (this.config[`ico${clickKey}` as keyof DragCardConfig] as string) || '';
                     }
                     this.clickCount = 0;
                     this.handleClick = null;
@@ -891,17 +881,11 @@ export class DragCard extends LitElement {
             const direction = this.getDirectionFromDelta(dx, dy);
 
             if (this.hasAction(direction)) {
-                const iconKey = `ico${direction}` as keyof DragCardConfig;
-                const actionKey = `action${direction}` as keyof DragCardConfig;
-                this.currentIcon = (this.config[iconKey] as string) || this.currentIcon;
-                this.executeAction(actionKey);
+                this.runNamedAction(direction);
             }
         }
-        
-        this.actionCounter++;
-        this.iconTimeout = window.setTimeout(() => {
-            this.currentIcon = this.config?.icoDefault || this.config?.icoCenter || 'mdi:alert';
-        }, 3000);
+
+        this.scheduleIconReset();
     }
 
     // This function is called when the mouse or touch is released
