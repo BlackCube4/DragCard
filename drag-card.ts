@@ -625,6 +625,12 @@ export class DragCard extends LitElement {
             this.dragFrameRequested = false;
             if (!this.isDragging) return;
 
+            // Re-assert the cursor every frame: pointer capture doesn't stop the
+            // browser from showing a hovered element's own cursor style underneath,
+            // so this keeps "grabbing" visible while dragging over other buttons
+            document.body.style.cursor = 'grabbing';
+            this.visualButton.style.cursor = 'grabbing';
+
             // Update real position (without scaling)
             this.buttonRealPos = {
                 x: this.latestPointerPos.x - this.mouseOffset.x,
