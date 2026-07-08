@@ -498,8 +498,15 @@ export class DragCard extends LitElement {
         this.overlay.style.left = '0';
         this.overlay.style.width = '100%';
         this.overlay.style.height = '100%';
-        this.overlay.style.pointerEvents = 'none';
         this.overlay.style.zIndex = '999999';
+
+        // Make the overlay itself the hit-tested element everywhere on screen so its
+        // "grabbing" cursor wins over other elements' own cursor styles underneath
+        // (setting document.body's cursor can't override those - it doesn't cross
+        // into their shadow roots). This intentionally blocks interaction with the
+        // rest of the page for the duration of the drag, which is expected here.
+        this.overlay.style.pointerEvents = 'auto';
+        this.overlay.style.cursor = 'grabbing';
 
         if (!this.buttonPlaceholder) {
             this.buttonPlaceholder = document.createElement('div');
@@ -624,12 +631,6 @@ export class DragCard extends LitElement {
         requestAnimationFrame(() => {
             this.dragFrameRequested = false;
             if (!this.isDragging) return;
-
-            // Re-assert the cursor every frame: pointer capture doesn't stop the
-            // browser from showing a hovered element's own cursor style underneath,
-            // so this keeps "grabbing" visible while dragging over other buttons
-            document.body.style.cursor = 'grabbing';
-            this.visualButton.style.cursor = 'grabbing';
 
             // Update real position (without scaling)
             this.buttonRealPos = {
