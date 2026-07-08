@@ -102,6 +102,7 @@ export class DragCard extends LitElement {
     private lastGridY = 0;
     private latestPointerPos = { x: 0, y: 0 };
     private dragFrameRequested = false;
+    private hasMoved = false;
     private actionAvailability: Partial<Record<'Up' | 'Down' | 'Left' | 'Right' | 'Center' | 'Hold' | 'Double' | 'Triple' | 'Quadruple', boolean>> = {};
     
     private overlay: HTMLElement | null = null;
@@ -450,12 +451,11 @@ export class DragCard extends LitElement {
 
         if (this.config.buttonSmallerOnClick) this.visualButton.style.transform = "scale(0.95)";
         if (this.config.iconLargerOnClick) this.iconContainer.style.transform = "scale(1.1)";
-        document.body.style.cursor = 'grabbing';
-        this.visualButton.style.cursor = 'grabbing';
         if (event.pointerType != 'touch') this.hover.style.opacity = "0.01";
 
         this.startTime = Date.now();
         this.isDragging = true;
+        this.hasMoved = false; // Grab cursor only kicks in once the pointer actually moves
 
         if (this.rippleTimeout) {
             clearTimeout(this.rippleTimeout);
@@ -499,14 +499,8 @@ export class DragCard extends LitElement {
         this.overlay.style.width = '100%';
         this.overlay.style.height = '100%';
         this.overlay.style.zIndex = '999999';
-
-        // Make the overlay itself the hit-tested element everywhere on screen so its
-        // "grabbing" cursor wins over other elements' own cursor styles underneath
-        // (setting document.body's cursor can't override those - it doesn't cross
-        // into their shadow roots). This intentionally blocks interaction with the
-        // rest of the page for the duration of the drag, which is expected here.
-        this.overlay.style.pointerEvents = 'auto';
-        this.overlay.style.cursor = 'grabbing';
+        // Stays click-through until actual movement starts (see drag())
+        this.overlay.style.pointerEvents = 'none';
 
         if (!this.buttonPlaceholder) {
             this.buttonPlaceholder = document.createElement('div');
@@ -622,6 +616,18 @@ export class DragCard extends LitElement {
     private drag(event: any) {
         event.preventDefault();
         event.stopPropagation();
+
+        // Only switch into the "grabbing" visuals once the pointer actually moves,
+        // so a plain click/hold without movement keeps the normal cursor
+        if (!this.hasMoved) {
+            this.hasMoved = true;
+            document.body.style.cursor = 'grabbing';
+            this.visualButton.style.cursor = 'grabbing';
+            if (this.overlay) {
+                this.overlay.style.pointerEvents = 'auto';
+                this.overlay.style.cursor = 'grabbing';
+            }
+        }
 
         this.latestPointerPos = { x: event.clientX, y: event.clientY };
 
